@@ -10,12 +10,15 @@ import {
   readBundledPluginAssetHooks,
   runBundledPluginAssetHooks,
 } from "../../scripts/bundled-plugin-assets.mts";
+import { DOCKER_SELECTED_PLUGIN_BUILD_IDS_ENV } from "../../scripts/lib/bundled-plugin-build-entries.mjs";
+import { copyPluginControlUiAssets } from "../../scripts/lib/plugin-control-ui-assets.mts";
 import { listGeneratedExtensionAssetSources } from "../../scripts/lib/static-extension-assets.mts";
 import {
   createRunNodePathClassifier,
   isBuildRelevantRunNodePath,
   isRestartRelevantRunNodePath,
 } from "../../scripts/run-node-watch-paths.mts";
+import { readPluginControlUiAssets } from "../../src/plugins/control-ui-assets.js";
 import { useAutoCleanupTempDirTracker } from "../helpers/temp-dir.js";
 
 const tempDirs = useAutoCleanupTempDirTracker(afterEach);
@@ -48,6 +51,71 @@ async function withPluginAssetFixture(run: (rootDir: string) => Promise<void>) {
 }
 
 describe("bundled plugin assets", () => {
+  it("copies Control UI assets from the selected build owner into the declared directory", async () => {
+    const repoRoot = tempDirs.make("openclaw-plugin-control-ui-assets-");
+    fs.writeFileSync(
+      path.join(repoRoot, "package.json"),
+      JSON.stringify({ files: ["dist/**", "!dist/extensions/external/**"] }),
+    );
+    const declaration = {
+      entry: `dist/control-ui/${"a".repeat(64)}/index.js`,
+      styles: [`dist/control-ui/${"a".repeat(64)}/index.css`],
+    };
+    for (const id of ["external", "bundled"]) {
+      const pluginRoot = path.join(repoRoot, "extensions", id);
+      fs.mkdirSync(pluginRoot, { recursive: true });
+      fs.writeFileSync(path.join(pluginRoot, "openclaw.plugin.json"), JSON.stringify({ id }));
+      fs.writeFileSync(path.join(pluginRoot, "index.ts"), "export {};\n");
+      fs.writeFileSync(
+        path.join(pluginRoot, "package.json"),
+        JSON.stringify({ openclaw: { extensions: ["./index.ts"] } }),
+      );
+      const runtimeRoot = path.join(repoRoot, "dist", "extensions", id);
+      const stagedEntry =
+        id === "external"
+          ? path.join(runtimeRoot, declaration.entry.slice("dist/".length))
+          : path.join(pluginRoot, declaration.entry);
+      fs.mkdirSync(path.dirname(stagedEntry), { recursive: true });
+      fs.writeFileSync(stagedEntry, `export const owner = "${id}";\n`);
+      fs.writeFileSync(path.join(path.dirname(stagedEntry), "index.css"), ".viewer {}\n");
+      for (let repeat = 0; repeat < 2; repeat += 1) {
+        await copyPluginControlUiAssets({
+          repoRoot,
+          pluginRoot,
+          entry: declaration.entry,
+          env: {},
+        });
+        const { assets } = await readPluginControlUiAssets(runtimeRoot, declaration);
+        expect(assets.get("index.js")?.body.toString()).toBe(`export const owner = "${id}";\n`);
+        expect(assets.get("index.css")?.body.toString()).toBe(".viewer {}\n");
+      }
+    }
+
+    const pluginRoot = path.join(repoRoot, "extensions", "external");
+    const runtimeRoot = path.join(repoRoot, "dist", "extensions", "external");
+    const dockerEntry = path.join(pluginRoot, declaration.entry);
+    fs.mkdirSync(path.dirname(dockerEntry), { recursive: true });
+    fs.writeFileSync(dockerEntry, "export const owner = 'docker';\n");
+    fs.writeFileSync(path.join(path.dirname(dockerEntry), "index.css"), ".docker {}\n");
+    await copyPluginControlUiAssets({
+      repoRoot,
+      pluginRoot,
+      entry: declaration.entry,
+      env: { [DOCKER_SELECTED_PLUGIN_BUILD_IDS_ENV]: "external" },
+    });
+    const { assets } = await readPluginControlUiAssets(runtimeRoot, declaration);
+    expect(assets.get("index.js")?.body.toString()).toBe("export const owner = 'docker';\n");
+
+    fs.rmSync(runtimeRoot, { recursive: true });
+    await copyPluginControlUiAssets({
+      repoRoot,
+      pluginRoot,
+      entry: declaration.entry,
+      env: { [DOCKER_SELECTED_PLUGIN_BUILD_IDS_ENV]: "bundled" },
+    });
+    expect(fs.existsSync(runtimeRoot)).toBe(false);
+  });
+
   it("creates a missing Discord SDK bundle without rewriting it when unchanged", async () => {
     const rootDir = tempDirs.make("openclaw-discord-sdk-");
     const outputPath = path.join(rootDir, "embedded-app-sdk.mjs");

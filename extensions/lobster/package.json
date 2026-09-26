@@ -22,6 +22,7 @@
     "controlUi": "./browser/index.ts",
     "assetScripts": {
       "build": "node --import ../../scripts/tsx.mjs ../../scripts/run-with-env.mts TSX_TSCONFIG_PATH=../../tsconfig.json -- node --import ../../scripts/tsx.mjs ../../scripts/build-plugin-control-ui.mts",
+      "copy": "node --import ../../scripts/tsx.mjs ../../scripts/run-with-env.mts TSX_TSCONFIG_PATH=../../tsconfig.json -- node --import ../../scripts/tsx.mjs ../../scripts/build-plugin-control-ui.mts --copy",
       "buildOutputs": [
         "openclaw.plugin.json"
       ]
