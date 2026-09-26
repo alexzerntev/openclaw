@@ -15,6 +15,26 @@ Restart the Gateway after installing or updating the plugin.
 - Lobster is a standalone workflow shell (typed JSON-first pipelines + approvals/resume).
 - This plugin integrates Lobster with OpenClaw _without core changes_.
 
+## Workflow viewer
+
+Open **Lobster** from the sidebar. For a separately installed copy, first enable
+**Custom plugin UI** in Settings → Labs. The read-only viewer lists built-ins and
+files in the default agent's `workflows/` directory, with search, pagination, flow
+diagrams, and highlighted source files. File changes refresh open views
+automatically. Viewing a workflow does not execute it or enable the optional
+agent tool.
+
+The shared viewer and inspection API are maintained in the Lobster repository's
+`@clawdbot/lobster-viewer` package. This plugin owns only its OpenClaw pages,
+navigation, read-scoped RPCs, and service lifecycle. Run the package's asset build
+after changing `browser/index.ts`; it generates the immutable Control UI assets
+and updates `openclaw.plugin.json`.
+
+This fork draft pins an unreleased viewer commit for source development with
+`pnpm install`. Before publishing the plugin, release that library and replace
+the Git dependency with its exact npm version; the normal npm packaging check
+intentionally rejects the temporary pin.
+
 ## Enable
 
 Because this tool can trigger side effects (via workflows), it is registered with `optional: true`.

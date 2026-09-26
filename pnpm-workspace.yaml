@@ -86,6 +86,7 @@ overrides:
   uuid: 14.0.2
 
 allowBuilds:
+  "@clawdbot/lobster-viewer@https://codeload.github.com/alexzerntev/lobster/tar.gz/dcb801b4fd7006b54c1f440ec00920cc352760c5#path:/ui": true
   onnxruntime-node: false
   "@google/genai": true
   "@lydell/node-pty": true

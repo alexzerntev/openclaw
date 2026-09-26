@@ -1,14 +1,21 @@
 {
   "id": "lobster",
-  "categories": ["agent-orchestration"],
+  "categories": [
+    "agent-orchestration"
+  ],
   "activation": {
     "onStartup": true
   },
   "name": "Lobster",
   "description": "Lobster workflow tool plugin for typed pipelines and resumable approvals.",
-  "catalog": { "featured": true, "order": 50 },
+  "catalog": {
+    "featured": true,
+    "order": 50
+  },
   "contracts": {
-    "tools": ["lobster"]
+    "tools": [
+      "lobster"
+    ]
   },
   "toolMetadata": {
     "lobster": {
@@ -19,5 +26,11 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {}
+  },
+  "controlUi": {
+    "entry": "dist/control-ui/485cfd776733cf4aebfb6c2c025b51970d2ad37db4fecca315dc78e6b32b626e/index.js",
+    "styles": [
+      "dist/control-ui/485cfd776733cf4aebfb6c2c025b51970d2ad37db4fecca315dc78e6b32b626e/index.css"
+    ]
   }
 }

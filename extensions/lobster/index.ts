@@ -2,12 +2,14 @@
 import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import type { AnyAgentTool, OpenClawPluginApi, OpenClawPluginToolFactory } from "./runtime-api.js";
 import { createLobsterTool } from "./src/lobster-tool.js";
+import { registerWorkflowViewer } from "./src/workflow-viewer.js";
 
 export default definePluginEntry({
   id: "lobster",
   name: "Lobster",
   description: "Optional local shell helper tools",
   register(api: OpenClawPluginApi) {
+    registerWorkflowViewer(api);
     api.registerTool(
       ((ctx) => {
         if (ctx.sandboxed) {

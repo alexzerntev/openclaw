@@ -9,6 +9,7 @@
   "type": "module",
   "dependencies": {
     "@clawdbot/lobster": "2026.9.13",
+    "@clawdbot/lobster-viewer": "github:alexzerntev/lobster#dcb801b4fd7006b54c1f440ec00920cc352760c5&path:/ui",
     "typebox": "1.3.33"
   },
   "devDependencies": {
@@ -18,6 +19,14 @@
     "extensions": [
       "./index.ts"
     ],
+    "controlUi": "./browser/index.ts",
+    "assetScripts": {
+      "build": "node --import ../../scripts/tsx.mjs ../../scripts/run-with-env.mts TSX_TSCONFIG_PATH=../../tsconfig.json -- node --import ../../scripts/tsx.mjs ../../scripts/build-plugin-control-ui.mts",
+      "copy": "node --import ../../scripts/tsx.mjs ../../scripts/run-with-env.mts TSX_TSCONFIG_PATH=../../tsconfig.json -- node --import ../../scripts/tsx.mjs ../../scripts/build-plugin-control-ui.mts --copy",
+      "buildOutputs": [
+        "openclaw.plugin.json"
+      ]
+    },
     "install": {
       "clawhubSpec": "clawhub:@openclaw/lobster",
       "npmSpec": "@openclaw/lobster",
